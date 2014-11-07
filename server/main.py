@@ -32,6 +32,6 @@ class preparenotebook:
 		notebook.name = 'evergtd'
 		notebook = note_store.createNotebook(notebook)
 		return notebook.guid
-		
+
 if __name__ == "__main__":
     app.run()

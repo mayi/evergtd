@@ -15,6 +15,7 @@ class NoteService():
             self._notebookGuid = None
             self._note_names = ["task1", "task2", "task3", "task4"]
             self._notes = None
+            self._notes_guid_name = None
         else:
             raise Error
 
@@ -45,9 +46,11 @@ class NoteService():
         meta_list = note_store.findNotesMetadata(note_filter, 0, 4, result_spec)
 
         self._notes = {}
+        self._notes_guid_name = {}
         for meta in meta_list.notes:
             if meta.title in self._note_names:
                 self._notes[meta.title] = meta.guid
+                self._notes_guid_name[meta.guid] = meta.title
 
         for name in self._note_names:
             if name not in self._notes:
@@ -56,16 +59,27 @@ class NoteService():
                 note.notebookGuid = self._notebookGuid
                 note.content = '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">'
                 note.content += '<en-note></en-note>'
-                self._notes[name] = note_store.createNote(note).guid
+                created_note_guid = note_store.createNote(note).guid
+                self._notes[name] = created_note_guid
+                self._notes_guid_name[created_note_guid] = name
 
         return len(self._notes)
 
-    def load_node_data(self, name):
+    def load_note_data(self, name):
         guid = self._notes[name]
         note_store = self._client.get_note_store()
         note = note_store.getNote(guid, True, False, False, False)
         print note.content
         return self.convert_content_json(note.content)
+
+    def update_note_data(self, name, content):
+        guid = self._notes[name]
+        note = Types.Note()
+        note.guid = guid
+        note.title = name
+        note.content = content
+        note_store = self._client.get_note_store()
+        note_store.updateNote(note)
 
     def convert_json_content(self, json_string):
         objs = json.loads(json_string)
@@ -110,7 +124,8 @@ if __name__ == '__main__':
     dev_token = "S=s1:U=8fcf8:E=150da644ca6:C=14982b31da8:P=1cd:A=en-devtoken:V=2:H=a8defc28f091744b9ebfaea80f5c1d58"
     ns = NoteService(dev_token)
     ns.prepareNotebook()
-    print ns.prepareNotes()
+    ns.prepareNotes()
+    ns.update_note_data('task2', ns.convert_json_content('[{"t": "测试招聘人员", "c": 1}, {"t": "研发招聘人员", "c": 0}]').encode('utf-8'))
     #print ns.convert_json_content('[{"t": "测试招聘人员", "c": 1}, {"t": "研发招聘人员", "c": 0}]')
     #print ns.convert_content_json('<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd"><en-note><div><en-todo checked="true"></en-todo>测试招聘人员</div><div><en-todo></en-todo>研发招聘人员</div></en-note>')
-    print ns.convert_json_content(ns.load_node_data('task1'))
+    #print ns.convert_json_content(ns.load_note_data('task1'))

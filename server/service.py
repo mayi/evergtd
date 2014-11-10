@@ -8,7 +8,9 @@ class NoteService():
     	if dev_token is not None:
             self._dev_token = dev_token
             self._client = EvernoteClient(token=self._dev_token)
-            self._note_names = ["1", "2", "3", "4"]
+            self._notebookGuid = None
+            self._note_names = ["task1", "task2", "task3", "task4"]
+            self._notes = None
         else:
             raise Error
 
@@ -23,25 +25,39 @@ class NoteService():
         l = []
         for n in notebooks:
             if n.name == 'evergtd':
-                return n.guid
+                self._notebookGuid = n.guid
+                return
         notebook = Types.Notebook()
         notebook.name = 'evergtd'
         notebook = note_store.createNotebook(notebook)
-        return notebook.guid
+        self._notebookGuid = notebook.guid
 
-    def prepareNotes(self, notebookGuid):
+    def prepareNotes(self):
         note_store = self._client.get_note_store()
 
         note_filter = NTypes.NoteFilter()
-        note_filter.notebookGuid = notebookGuid
+        note_filter.notebookGuid = self._notebookGuid
         result_spec = NTypes.NotesMetadataResultSpec(includeTitle=True, includeNotebookGuid=True)
         meta_list = note_store.findNotesMetadata(note_filter, 0, 4, result_spec)
 
-        for meta in meta_list:
+        self._notes = {}
+        for meta in meta_list.notes:
+            if meta.title in self._note_names:
+                self._notes[meta.title] = meta
 
-        return meta_list.totalNotes
+        for name in self._note_names:
+            if name not in self._notes:
+                note = Types.Note()
+                note.title = name
+                note.notebookGuid = self._notebookGuid
+                note.content = '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd">'
+                note.content += '<en-note></en-note>'
+                self._notes[name] = note_store.createNote(note)
+
+        return len(self._notes)
 
 if __name__ == '__main__':
     dev_token = "S=s1:U=8fcf8:E=150da644ca6:C=14982b31da8:P=1cd:A=en-devtoken:V=2:H=a8defc28f091744b9ebfaea80f5c1d58"
     ns = NoteService(dev_token)
-    print ns.prepareNotes(ns.prepareNotebook())
+    ns.prepareNotebook()
+    print ns.prepareNotes()

@@ -79,7 +79,7 @@ class NoteService():
             content = note_store.getNoteContent(guid)
             obj = self.convert_content_object(content)
             tasks[name] = obj
-        return json.dumps(tasks)
+        return json.dumps(tasks).encode('utf-8')
 
     def update_note_data(self, name, json_string):
         guid = self._notes[name]

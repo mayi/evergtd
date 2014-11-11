@@ -68,12 +68,22 @@ class NoteService():
     def load_note_data(self, name):
         guid = self._notes[name]
         note_store = self._client.get_note_store()
-        note = note_store.getNote(guid, True, False, False, False)
-        print note.content
-        return self.convert_content_json(note.content)
+        content = note_store.getNoteContent(guid)
+        return json.dumps(self.convert_content_object(content))
 
-    def update_note_data(self, name, content):
+    def load_all_note_data(self):
+        note_store = self._client.get_note_store()
+        tasks = {}
+        for name in self._note_names:
+            guid = self._notes[name]
+            content = note_store.getNoteContent(guid)
+            obj = self.convert_content_object(content)
+            tasks[name] = obj
+        return json.dumps(tasks)
+
+    def update_note_data(self, name, json_string):
         guid = self._notes[name]
+        content = self.convert_json_content(json_string.encode('utf-8'))
         note = Types.Note()
         note.guid = guid
         note.title = name
@@ -98,20 +108,26 @@ class NoteService():
         output.close()
         return content
 
-    def convert_content_json(self, content):
+    def convert_content_object(self, content):
+        print content
         dom = minidom.parseString(content)
         el_divs = dom.getElementsByTagName('div')
         objs = []
         for el_div in el_divs:
-            obj = {}
-            obj['t'] = getText(el_div.childNodes)
-            checked = el_div.getElementsByTagName('en-todo')[0].getAttribute('checked')
-            if checked and checked == "true":
-                obj['c'] = 1
-            else:
-                obj['c'] = 0
-            objs.append(obj)
-        return json.dumps(objs)
+            todos = el_div.getElementsByTagName('en-todo')
+            if todos:
+                obj = {}
+                obj['t'] = getText(el_div.childNodes)
+                checked = todos[0].getAttribute('checked')
+                if checked and checked == "true":
+                    obj['c'] = 1
+                else:
+                    obj['c'] = 0
+                objs.append(obj)
+        return objs
+
+    def is_allowed_name(self, name):
+        return (name in self._note_names)
 
 def getText(nodelist):
     rc = []
@@ -125,7 +141,7 @@ if __name__ == '__main__':
     ns = NoteService(dev_token)
     ns.prepareNotebook()
     ns.prepareNotes()
-    ns.update_note_data('task2', ns.convert_json_content('[{"t": "测试招聘人员", "c": 1}, {"t": "研发招聘人员", "c": 0}]').encode('utf-8'))
+    #ns.update_note_data('task2', ns.convert_json_content('[{"t": "测试招聘人员", "c": 1}, {"t": "研发招聘人员", "c": 0}]').encode('utf-8'))
     #print ns.convert_json_content('[{"t": "测试招聘人员", "c": 1}, {"t": "研发招聘人员", "c": 0}]')
     #print ns.convert_content_json('<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml2.dtd"><en-note><div><en-todo checked="true"></en-todo>测试招聘人员</div><div><en-todo></en-todo>研发招聘人员</div></en-note>')
     #print ns.convert_json_content(ns.load_note_data('task1'))

@@ -109,7 +109,6 @@ class NoteService():
         return content
 
     def convert_content_object(self, content):
-        print content
         dom = minidom.parseString(content)
         el_divs = dom.getElementsByTagName('div')
         objs = []

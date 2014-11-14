@@ -83,13 +83,15 @@ class NoteService():
 
     def update_note_data(self, name, json_string):
         guid = self._notes[name]
-        content = self.convert_json_content(json_string.encode('utf-8'))
+        content = self.convert_json_content(json_string)
         note = Types.Note()
         note.guid = guid
         note.title = name
         note.content = content
         note_store = self._client.get_note_store()
-        note_store.updateNote(note)
+        updated_note = note_store.updateNote(note)
+        updated_content = note_store.getNoteContent(updated_note.guid)
+        return json.dumps(self.convert_content_object(updated_content))
 
     def convert_json_content(self, json_string):
         objs = json.loads(json_string)
@@ -101,7 +103,7 @@ class NoteService():
                 output.write('<div><en-todo checked="true"></en-todo>')
             else:
                 output.write('<div><en-todo></en-todo>')
-            output.write(obj['t'])
+            output.write(obj['t'].encode('utf-8'))
             output.write('</div>')
         output.write('</en-note>')
         content = output.getvalue()

@@ -29,7 +29,7 @@ class update:
         if ns.is_allowed_name(name):
             content = i.content
             jsonString = ns.update_note_data(name, content)
-            return '{"r":0, "data": "' + jsonString + '"}'
+            return '{"r":0, "data": ' + jsonString + '}'
         else:
             return '{"r":2}'
 

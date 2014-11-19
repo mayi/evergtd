@@ -17,7 +17,6 @@ function load_all_note() {
 
 function load_note(name, value) {
 	var nc = value.length;
-	alert(nc);
 	var array = [];
 	for (i = 0; i < value.length; i++) {
 		var v = value[i];
@@ -29,7 +28,6 @@ function load_note(name, value) {
 	}
 	$("#" + name + "-div").html(array.join(''));
 	$("#" + name + "-badge").html(nc + "");
-	alert(nc);
 }
 
 function update_note(obj) {
@@ -41,10 +39,14 @@ function update_note(obj) {
 		array.push('{"c":' + c + ',"t":"' + t + '"}');
 	});
 	jsonString = '[' + array.join(',') + ']';
-	$.post("/i/update", {"name": belong, "content": jsonString}, function(data) {
-		alert(data);
+	$.ajax({
+		type: "POST",
+		url: "/i/update",
+		data: {name: belong, content: jsonString},
+		dataType: "json"
+	}).done(function(data) {
 		if (data.r == 0) {
-			load_note(belong, $.parseJSON(data.data));
+			load_note(belong, data.data);
 		}
-	}, "json");
+	});
 }

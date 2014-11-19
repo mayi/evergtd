@@ -91,7 +91,7 @@ class NoteService():
         note_store = self._client.get_note_store()
         updated_note = note_store.updateNote(note)
         updated_content = note_store.getNoteContent(updated_note.guid)
-        return json.dumps(self.convert_content_object(updated_content))
+        return json.dumps(self.convert_content_object(updated_content)).encode('utf-8')
 
     def convert_json_content(self, json_string):
         objs = json.loads(json_string)

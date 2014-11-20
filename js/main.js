@@ -56,5 +56,5 @@ function update_note(obj) {
 
 function add(obj) {
 	var belong = $(obj).attr("belong");
-	$("#" + belong + "-div").append('<p><div class="input-group"><span class="input-group-addon"><input type="checkbox"></span><input type="text" class="form-control"><span class="input-group-addon"><a href="#" class="btn-sm" role="button">Save</a></div></p>');
+	$("#" + belong + "-div").append('<p><div class="input-group"><span class="input-group-addon"><input type="checkbox"></span><input type="text" class="form-control"><span class="input-group-btn"><button class="btn btn-default" type="button">Save</button></div></p>');
 }
